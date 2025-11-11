@@ -7,11 +7,29 @@ export const api = axios.create({
 // Attach Authorization header if token exists
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
+  config.headers = config.headers || {};
+
+  // If token exists, attach it
   if (token) {
-    config.headers = config.headers || {};
     config.headers.Authorization = `Bearer ${token}`;
+    return config;
   }
-  return config;
+
+  // Allow unauthenticated access to auth routes (login/register)
+  const url = (config.url || '').toString();
+  if (url.startsWith('/auth') || url.includes('/auth/')) {
+    return config;
+  }
+
+  // No token and accessing a protected endpoint: reject early with a shaped error
+  const err = new Error('No autorizado: token faltante');
+  err.response = { status: 401, data: { message: 'No autorizado: token faltante' } };
+  // Clear any stale token and navigate to login
+  localStorage.removeItem('token');
+  if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
+    window.location.href = '/login';
+  }
+  return Promise.reject(err);
 });
 
 // Optional: handle 401 globally
