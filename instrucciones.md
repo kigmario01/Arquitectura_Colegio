@@ -5,7 +5,7 @@ Guía para clonar, instalar y ejecutar la plataforma en otro PC.
 ## Prerrequisitos
 - `Node.js` 18 o superior.
 - `Git` instalado.
-- Puertos disponibles: `4001` (backend) y `5173` (frontend).
+- Puertos disponibles: `4000` (backend) y `5173` (frontend).
 
 ## Clonar el repositorio
 ```bash
@@ -19,22 +19,24 @@ cd Arquitectura_Colegio
    cd backend
    npm install
    ```
-2. Definir variables (opcional) y arrancar servidor en `4001`:
+2. Arrancar servidor en `4000`:
    - Windows PowerShell:
      ```powershell
+     node server.js
+     ```
+     (Opcional) definir secreto:
+     ```powershell
      setx JWT_SECRET "tu-secreto"
-     $env:PORT=4001; node server.js
      ```
    - macOS/Linux:
      ```bash
      export JWT_SECRET="tu-secreto"
-     export PORT=4001
      node server.js
      ```
 3. Qué sucede al iniciar:
    - Se crea la base `backend/plataforma_estudiantil.sqlite` (SQLite, sin instalar nada adicional).
    - Se seedéa un usuario administrador.
-   - La API queda en `http://localhost:4001/api`.
+   - La API queda en `http://localhost:4000/api`.
 
 ## Frontend (Web)
 1. Instalar dependencias:
@@ -44,7 +46,7 @@ cd Arquitectura_Colegio
    ```
 2. Configurar la URL del backend creando `frontend/.env.local`:
    ```env
-   VITE_API_URL=http://localhost:4001/api
+   VITE_API_URL=http://localhost:4000/api
    ```
 3. Arrancar el servidor de desarrollo:
    ```bash
@@ -67,7 +69,7 @@ cd Arquitectura_Colegio
   - Levantar con tu gestor (PM2/servicio del sistema) y definir `JWT_SECRET` y `PORT` en el entorno.
 
 ## Cambiar puertos
-- Si el puerto `4001` está ocupado, puedes arrancar el backend en otro puerto, por ejemplo `4002`:
+- Si el puerto `4000` está ocupado, puedes arrancar el backend en otro puerto, por ejemplo `4002`:
   - Windows PowerShell:
     ```powershell
     $env:PORT=4002; node server.js
@@ -89,4 +91,4 @@ cd Arquitectura_Colegio
 
 ## Notas
 - No necesitas instalar ninguna base de datos: se usa SQLite con archivo local.
-- Si prefieres usar `4000` en vez de `4001`, arranca el backend en `4000` y ajusta `VITE_API_URL` a `http://localhost:4000/api`.
+- Puerto por defecto del backend: `4000`.
