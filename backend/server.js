@@ -11,7 +11,7 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 4000;
-const DB_PATH = path.join(__dirname, 'plataforma_estudiantil.sqlite');
+const DB_PATH = process.env.DB_PATH || path.join(__dirname, 'plataforma_estudiantil.sqlite');
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret';
 
 sqlite3.verbose();
@@ -121,7 +121,9 @@ const initializeDatabase = async () => {
   }
 };
 
-app.use(cors());
+// Allow configuring CORS origin via env; default is open
+const CORS_ORIGIN = process.env.CORS_ORIGIN;
+app.use(CORS_ORIGIN ? cors({ origin: CORS_ORIGIN }) : cors());
 app.use(express.json());
 
 // Async handler util
@@ -484,6 +486,7 @@ initializeDatabase()
   .then(() => {
     app.listen(PORT, () => {
       console.log(`Servidor escuchando en http://localhost:${PORT}`);
+      console.log(`Base de datos en: ${DB_PATH}`);
     });
   })
   .catch((error) => {

@@ -68,6 +68,25 @@ cd Arquitectura_Colegio
 - Backend:
   - Levantar con tu gestor (PM2/servicio del sistema) y definir `JWT_SECRET` y `PORT` en el entorno.
 
+## Despliegue en Render (Backend)
+- Usa el archivo `render.yaml` incluido en la raíz.
+- Configuración:
+  - Servicio Web, `rootDir: backend`, `buildCommand: npm install`, `startCommand: node server.js`.
+  - Variables de entorno:
+    - `JWT_SECRET`: tu secreto.
+    - `DB_PATH`: `/var/data/plataforma_estudiantil.sqlite` (para persistencia).
+    - `CORS_ORIGIN` (opcional): `https://tu-app.vercel.app` para restringir origen.
+  - Disco persistente: montado en `/var/data` (1GB por defecto en `render.yaml`).
+- La API quedará disponible en `https://<tu-servicio>.onrender.com/api`.
+
+## Despliegue en Vercel (Frontend)
+- Importa el proyecto desde GitHub y selecciona el directorio `frontend`.
+- Vercel detecta Vite; también puedes usar `frontend/vercel.json`.
+- Variables de entorno:
+  - `VITE_API_URL=https://<tu-servicio-backend>.onrender.com/api`
+- Tras el deploy, tu app estará en `https://<tu-app>.vercel.app`.
+- Si usas `CORS_ORIGIN`, pon aquí tu dominio de Vercel.
+
 ## Cambiar puertos
 - Si el puerto `4000` está ocupado, puedes arrancar el backend en otro puerto, por ejemplo `4002`:
   - Windows PowerShell:
