@@ -11,8 +11,9 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 4000;
-const DB_PATH = process.env.DB_PATH || path.join(__dirname, 'plataforma_estudiantil.sqlite');
-const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret';
+// Support alternative env names for deployment compatibility
+const DB_PATH = process.env.DB_PATH || process.env.DATABASE_URL || path.join(__dirname, 'plataforma_estudiantil.sqlite');
+const JWT_SECRET = process.env.JWT_SECRET || process.env.SECRET_KEY || 'dev-secret';
 
 sqlite3.verbose();
 const db = new sqlite3.Database(DB_PATH);

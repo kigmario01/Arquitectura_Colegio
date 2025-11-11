@@ -8,6 +8,10 @@ services:
     buildCommand: npm install
     startCommand: node server.js
     envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: 18
       - key: JWT_SECRET
         value: change-me
       - key: DB_PATH

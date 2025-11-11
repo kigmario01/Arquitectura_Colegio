@@ -54,6 +54,22 @@ El frontend puede apuntar a otra URL de la API configurando `VITE_API_URL`. Por 
 
 - `npm run build` (frontend): genera la versión optimizada para producción.
 
+## Despliegue
+
+- Guía completa: ver `instrucciones.md` en la raíz del repositorio.
+- Render (Backend): usa el `render.yaml` provisto (Node 18, `JWT_SECRET`, `DB_PATH`, `CORS_ORIGIN`, disco persistente en `/var/data`).
+- Vercel (Frontend): `frontend/vercel.json` configura build y rewrites para SPA; define `VITE_API_URL` en el panel de Vercel apuntando al backend en Render.
+
+### Variables para producción
+
+- Backend:
+  - `JWT_SECRET` o `SECRET_KEY` (alias)
+  - `DB_PATH` o `DATABASE_URL` (alias; para SQLite usar `/var/data/plataforma_estudiantil.sqlite`)
+  - `CORS_ORIGIN` (dominio de Vercel)
+  - `NODE_ENV=production`
+- Frontend:
+  - `VITE_API_URL=https://<tu-servicio-backend>.onrender.com/api`
+
 ---
 
 ¡Listo! Ejecuta ambos servicios y tendrás tu **Plataforma Estudiantil** funcionando localmente.
