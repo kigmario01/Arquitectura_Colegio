@@ -1,16 +1,28 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
+import { api, extractApiError } from '../utils/api.js';
 
 const LoginPage = () => {
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Placeholder: aquí iría la autenticación contra el backend
-    // Por ahora solo mostramos una acción simulada
-    // Puedes integrar tu API en src/utils/api.js cuando tengas endpoint
-    alert(`Inicio de sesión simulado para: ${email}`);
+    setLoading(true);
+    try {
+      const { data } = await api.post('/auth/login', { email, password });
+      localStorage.setItem('token', data.token);
+      toast.success('Sesión iniciada');
+      navigate('/dashboard', { replace: true });
+    } catch (error) {
+      toast.error(extractApiError(error));
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -49,9 +61,10 @@ const LoginPage = () => {
           </label>
           <button
             type="submit"
-            className="mt-2 w-full rounded-full bg-gradient-to-r from-primary to-secondary px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-primary/20"
+            disabled={loading}
+            className="mt-2 w-full rounded-full bg-gradient-to-r from-primary to-secondary px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-primary/20 disabled:opacity-60"
           >
-            Entrar
+            {loading ? 'Ingresando...' : 'Entrar'}
           </button>
         </form>
         <p className="mt-6 text-center text-xs text-white/50">

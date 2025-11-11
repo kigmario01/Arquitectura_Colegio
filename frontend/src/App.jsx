@@ -12,6 +12,11 @@ import LoginPage from './pages/LoginPage.jsx';
 const App = () => {
   const location = useLocation();
   const isLogin = location.pathname.startsWith('/login');
+  const RequireAuth = ({ children }) => {
+    const token = localStorage.getItem('token');
+    if (!token) return <Navigate to="/login" replace />;
+    return children;
+  };
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-background via-surface to-background text-white">
       {!isLogin && <Sidebar />}
@@ -21,12 +26,12 @@ const App = () => {
           <Routes>
             <Route path="/" element={<Navigate to="/login" replace />} />
             <Route path="/login" element={<LoginPage />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/estudiantes" element={<StudentsPage />} />
-            <Route path="/profesores" element={<TeachersPage />} />
-            <Route path="/cursos" element={<CoursesPage />} />
-            <Route path="/notas" element={<GradesPage />} />
-            <Route path="/asistencias" element={<AttendancePage />} />
+            <Route path="/dashboard" element={<RequireAuth><Dashboard /></RequireAuth>} />
+            <Route path="/estudiantes" element={<RequireAuth><StudentsPage /></RequireAuth>} />
+            <Route path="/profesores" element={<RequireAuth><TeachersPage /></RequireAuth>} />
+            <Route path="/cursos" element={<RequireAuth><CoursesPage /></RequireAuth>} />
+            <Route path="/notas" element={<RequireAuth><GradesPage /></RequireAuth>} />
+            <Route path="/asistencias" element={<RequireAuth><AttendancePage /></RequireAuth>} />
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Routes>
         </main>

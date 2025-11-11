@@ -3,6 +3,8 @@ import cors from 'cors';
 import sqlite3 from 'sqlite3';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -10,6 +12,7 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 4000;
 const DB_PATH = path.join(__dirname, 'plataforma_estudiantil.sqlite');
+const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret';
 
 sqlite3.verbose();
 const db = new sqlite3.Database(DB_PATH);
@@ -94,11 +97,34 @@ const initializeDatabase = async () => {
       FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE,
       FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE
     )`);
+
+  // Users for authentication
+  await runAsync(`CREATE TABLE IF NOT EXISTS users (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      email TEXT UNIQUE NOT NULL,
+      password TEXT NOT NULL,
+      first_name TEXT,
+      last_name TEXT,
+      role TEXT NOT NULL DEFAULT 'admin',
+      created_at TEXT DEFAULT (DATETIME('now'))
+    )`);
+
+  // Seed admin user if not exists
+  const existingAdmin = await getAsync(`SELECT id FROM users WHERE email = ?`, ['admin@colegio.edu']);
+  if (!existingAdmin) {
+    const hash = bcrypt.hashSync('admin123', 10);
+    await runAsync(
+      `INSERT INTO users (email, password, first_name, last_name, role) VALUES (?, ?, ?, ?, ?)`,
+      ['admin@colegio.edu', hash, 'Admin', 'General', 'admin']
+    );
+    console.log('Usuario admin inicial creado: admin@colegio.edu / admin123');
+  }
 };
 
 app.use(cors());
 app.use(express.json());
 
+// Async handler util
 const asyncHandler = (handler) => async (req, res) => {
   try {
     await handler(req, res);
@@ -107,6 +133,58 @@ const asyncHandler = (handler) => async (req, res) => {
     res.status(500).json({ message: 'Error interno del servidor', error: error.message });
   }
 };
+
+// Auth middleware (skips /api/auth/*)
+const authMiddleware = (req, res, next) => {
+  if (req.path.startsWith('/api/auth')) {
+    return next();
+  }
+  const authHeader = req.headers['authorization'] || '';
+  const parts = authHeader.split(' ');
+  const token = parts.length === 2 && parts[0] === 'Bearer' ? parts[1] : null;
+  if (!token) {
+    return res.status(401).json({ message: 'No autorizado: token faltante' });
+  }
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    req.user = decoded;
+    next();
+  } catch (err) {
+    return res.status(401).json({ message: 'No autorizado: token inválido' });
+  }
+};
+
+// Auth routes
+app.post('/api/auth/login', asyncHandler(async (req, res) => {
+  const { email, password } = req.body;
+  if (!email || !password) {
+    return res.status(400).json({ message: 'Email y contraseña son obligatorios' });
+  }
+  const user = await getAsync(`SELECT * FROM users WHERE email = ?`, [email]);
+  if (!user) {
+    return res.status(401).json({ message: 'Credenciales inválidas' });
+  }
+  const ok = await bcrypt.compare(password, user.password);
+  if (!ok) {
+    return res.status(401).json({ message: 'Credenciales inválidas' });
+  }
+  const token = jwt.sign({ id: user.id, email: user.email, role: user.role }, JWT_SECRET, { expiresIn: '7d' });
+  res.json({
+    token,
+    user: { id: user.id, email: user.email, first_name: user.first_name, last_name: user.last_name, role: user.role }
+  });
+}));
+
+app.get('/api/auth/me', authMiddleware, asyncHandler(async (req, res) => {
+  const user = await getAsync(`SELECT id, email, first_name, last_name, role FROM users WHERE id = ?`, [req.user.id]);
+  if (!user) {
+    return res.status(404).json({ message: 'Usuario no encontrado' });
+  }
+  res.json(user);
+}));
+
+// Apply auth protection to API routes (except /api/auth/* which is skipped above)
+app.use(authMiddleware);
 
 // Students CRUD
 app.get('/api/students', asyncHandler(async (req, res) => {

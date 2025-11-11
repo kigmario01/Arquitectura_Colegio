@@ -1,11 +1,13 @@
 import { useMemo, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { navItems } from './Sidebar.jsx';
 import { FaBars } from 'react-icons/fa';
+import { toast } from 'react-toastify';
 
 const Navbar = ({ onToggleSidebar }) => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [showMobileMenu, setShowMobileMenu] = useState(false);
 
   const activeItem = useMemo(
@@ -16,6 +18,12 @@ const Navbar = ({ onToggleSidebar }) => {
   const toggleMenu = () => {
     setShowMobileMenu((prev) => !prev);
     onToggleSidebar?.();
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    toast.success('Sesión cerrada');
+    navigate('/login', { replace: true });
   };
 
   return (
@@ -41,6 +49,12 @@ const Navbar = ({ onToggleSidebar }) => {
           >
             Plataforma Estudiantil v1.0
           </motion.div>
+          <button
+            onClick={handleLogout}
+            className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs font-semibold text-white/80 transition hover:bg-white/10"
+          >
+            Cerrar sesión
+          </button>
         </div>
       </div>
       <AnimatePresence>
@@ -56,6 +70,12 @@ const Navbar = ({ onToggleSidebar }) => {
                 {label}
               </a>
             ))}
+            <button
+              onClick={handleLogout}
+              className="rounded-xl bg-white/5 px-4 py-3 text-left text-sm font-medium text-white/80"
+            >
+              Cerrar sesión
+            </button>
           </motion.nav>
         )}
       </AnimatePresence>
