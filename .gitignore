@@ -1,0 +1,5 @@
+node_modules/
+backend/plataforma_estudiantil.sqlite
+backend/plataforma_estudiantil.sqlite-journal
+frontend/dist/
+.env
